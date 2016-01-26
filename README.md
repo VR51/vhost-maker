@@ -4,15 +4,21 @@ Version: 1.0.0
 Interactive Apache virtual host generator. Creates server space, adds default directories &amp; default files, creates openssl self-signed SSL crt &amp; key, enables mod_pagespeed for the generated site.conf.
 
 Author: Lee Hodson
+
 Donate: paypal.me/vr51
+
 First Written: 5th Dec. 2015
+
 First Release: 26th Jan. 2015
+
 This Release: 26th Jan. 2015
 
-https://github.com/VR51/vhost-maker
-https://journalxtra.com
+Code Store: https://github.com/VR51/vhost-maker
+
+Website: https://journalxtra.com
 
 Copyright 2015 Lee Hodson
+
 License: GPL3
 
 
