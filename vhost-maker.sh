@@ -3,7 +3,7 @@ clear
 ###
 #
 #	VHOST Maker
-#	Version: 1.0.0
+#	Version: 1.0.1
 #
 #	Author: Lee Hodson
 #	Donate: paypal.me/vr51
@@ -145,7 +145,7 @@ printf "VHOST MAKER STARTED\n--------------------------\n\n"
 #
 ###
 
-version="v1.0.0"
+version="v1.0.1"
 title="VHost Maker"
 
 # Establish Linux epoch time in seconds
@@ -795,7 +795,7 @@ if test "$sslinstall" = 0; then
 		printf "\n"
 		# Generate the certificate
 		sudo mkdir -p "$ssl_dir"
-		sudo openssl req -x509 -sha512 -newkey rsa:4096 -keyout "$ssl_dir/$sitename-openssl.key" -out "$ssl_dir/$sitename-openssl.crt" -days 1024 -nodes -subj "/CN=*.$sitename"
+		sudo openssl req -x509 -sha256 -newkey rsa:2048 -keyout "$ssl_dir/$sitename-openssl.key" -out "$ssl_dir/$sitename-openssl.crt" -days 1024 -nodes -subj "/CN=*.$sitename"
 		
 		# Enable the certificate in site-ssl.conf
 		sed -i "s@# SSLCertificateKeyFile PATH@SSLCertificateKeyFile $ssl_dir/$sitename-openssl.key@g" "$filepath/tmp/$sitename-ssl.conf"

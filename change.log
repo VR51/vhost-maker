@@ -1,3 +1,7 @@
+1.0.1
+
+	-	Bug Fix: corrected openssl command. Previous command was set for sha512 which produced SSL errors. Switched to sha256.
+	
 1.0.0
 
 	- First public release
