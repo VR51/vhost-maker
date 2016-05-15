@@ -3,13 +3,13 @@ clear
 ###
 #
 #	VHOST Maker
-#	Version: 1.0.1
+#	Version: 1.1.0
 #
 #	Author: Lee Hodson
 #	Donate: paypal.me/vr51
 #	First Written: 5th Dec. 2015
-#	First Release: 26th Jan. 2015
-#	This Release: 26th Jan. 2015
+#	First Release: 26th Jan. 2016
+#	This Release: 14th May. 2016
 #
 #	https://github.com/VR51/vhost-maker
 #	https://journalxtra.com
@@ -18,6 +18,7 @@ clear
 #	License: GPL3
 #
 #		Commercial and non-commercial use permitted. Program developer(s) must be credited. Credits may not be removed. Derivitive works must include credits.
+#		Commercial users are requested to be kind and to donate to the VHOST Maker developer (Lee) through paypal.me/vr51
 #
 #
 ###
@@ -93,7 +94,7 @@ clear
 #
 ##
 #
-#	VHost Maker will check whether or not dirctories and files exist before it tries to create them and will not overwrite files directories or files that do already exist.
+#	VHost Maker will check whether or not directories and files exist before it tries to create them and will not overwrite directories or files that do already exist.
 #
 #	But...
 #
@@ -239,17 +240,6 @@ tty -s
 
 if test "$?" -ne 0
 then
-
-	# This code section is released in public domain by Han Boetes <han@mijncomputer.nl>
-	# Updated by Dave Davenport <qball@gmpclient.org>
-	# Updated by Lee Hodson <https://journalxtra.com> - Added break on successful hit, added more terminals, humanized the failure message, replaced call to rofi with printf and made $terminal an array for easy reuse.
-	#
-	# This script tries to exec a terminal emulator by trying some known terminal
-	# emulators.
-	#
-	# We welcome patches that add distribution-specific mechanisms to find the
-	# preferred terminal emulator. On Debian, there is the x-terminal-emulator
-	# symlink for example.
 
 	terminal=( 'konsole' 'gnome-terminal' 'x-terminal-emulator' 'xdg-terminal' 'terminator' 'urxvt' 'rxvt' 'Eterm' 'aterm' 'roxterm' 'xfce4-terminal' 'termite' 'lxterminal' 'xterm' )
 	for i in "${terminal[@]}"; do
@@ -656,6 +646,41 @@ add_to_log "APACHE GROUP QUESTION"
 
 ##
 #
+#	Download Software
+#
+##
+
+software="$($DIALOG --stdout \
+--clear \
+--backtitle "$title" \
+--radiolist 'Download Software Package?' 0 0 0 \
+WordPress 'WordPress (default)' On \
+none 'None' Off \
+)"
+
+add_to_log "SOFTWARE TO DOWNLOAD QUESTION ANSWERED"
+
+
+case $software in
+
+	WordPress) 
+
+		runscript="$($DIALOG --stdout \
+		--clear \
+		--backtitle "$title" \
+		--radiolist 'Install plugin and theme deployment plugin?' 0 0 0 \
+		standard 'Standard plugins and themes' On \
+		)"
+
+		add_to_log "WORDPRESS RUNSCRIPT TO BE DOWNLOADED"
+	;;
+
+
+esac
+
+
+##
+#
 #	Now Work
 #
 #		Create space on the server
@@ -670,46 +695,46 @@ add_to_log "APACHE GROUP QUESTION"
 
 # Make Site Directories and Add Default Files
 
-sudo mkdir "$serverroot/$sitename"
+sudo mkdir "$serverroot/$sitedirectory"
 
 directories=( 'tmp' 'log' 'cgi-bin' 'doc' 'server-status' )
 files=( '.htaccess' 'index.php' )
 
 for i in "${directories[@]}"; do
 
-	if test ! -d "$serverroot/$sitename/$i"
+	if test ! -d "$serverroot/$sitedirectory/$i"
 	then
-		sudo mkdir "$serverroot/$sitename/$i"
+		sudo mkdir "$serverroot/$sitedirectory/$i"
 		
 		add_to_log "INSTALLED DEFAULT DIRECTORY $serverroot/$sitename/$i"
 		
 	else
 	
-		add_to_log "DID NOT INSTALL DEFAULT DIRECTORY $serverroot/$sitename/$i. ALREADY EXISTS"
+		add_to_log "DID NOT INSTALL DEFAULT DIRECTORY $serverroot/$sitedirectory/$i. ALREADY EXISTS"
 	
 	fi
 	
 	for f in "${files[@]}"; do
 
-		if test ! -f "$serverroot/$sitename/$f"
+		if test ! -f "$serverroot/$sitedirectory/$f"
 		then
-			sudo touch "$serverroot/$sitename/$f"
+			sudo touch "$serverroot/$sitedirectory/$f"
 			
-			add_to_log "INSTALLED DEFAULT FILE $serverroot/$sitename/$f"
+			add_to_log "INSTALLED DEFAULT FILE $serverroot/$sitedirectory/$f"
 		else
 		
-			add_to_log "DID NOT INSTALL DEFAULT FILE $serverroot/$sitename/$f. ALREADY EXISTS"
+			add_to_log "DID NOT INSTALL DEFAULT FILE $serverroot/$sitedirectory/$f. ALREADY EXISTS"
 		
 		fi
 	
-		if test ! -f "$serverroot/$sitename/$i/$f"
+		if test ! -f "$serverroot/$sitedirectory/$i/$f"
 		then
-			sudo touch "$serverroot/$sitename/$i/$f"
+			sudo touch "$serverroot/$sitedirectory/$i/$f"
 			
-			add_to_log "INSTALLED DEFAULT FILE $serverroot/$sitename/$i/$f"
+			add_to_log "INSTALLED DEFAULT FILE $serverroot/$sitedirectory/$i/$f"
 		else
 		
-			add_to_log "DID NOT INSTALL DEFAULT FILE $serverroot/$sitename/$i/$f. ALREADY EXISTS"
+			add_to_log "DID NOT INSTALL DEFAULT FILE $serverroot/$sitedirectory/$i/$f. ALREADY EXISTS"
 		
 		fi
 	
@@ -718,20 +743,53 @@ for i in "${directories[@]}"; do
 done
 
 
-# Add default content to index.php if file size is 0
+# Download software
 
-size=$(wc -c <"$serverroot/$sitename/index.php")
-if test $size -eq 0 ; then
+case $software in
 
-	printf "\n"
-	printf "<?php echo '<p>Welcome to $sitename.</p><p>Test both HTTP and HTTPS versions of this site to confirm proper installation.</p><p>Host created with $title $version.</p><p>Read more about $title at https://github.com/vr51/vhost-maker</p>'; ?>" | sudo tee -a "$serverroot/$sitename/index.php"
-	add_to_log "INSTALLED WELCOME TEXT INTO $serverroot/$sitename/index.php"
+	WordPress)
 	
-else
+		sudo wget https://wordpress.org/latest.zip -P "$serverroot/$sitedirectory/"
+		add_to_log "DOWNLOADED WORDPRESS"
+		sudo unzip "$serverroot/$sitedirectory/latest.zip" -d "$serverroot/$sitedirectory/"
+		sudo mv "$serverroot/$sitedirectory/wordpress"/* "$serverroot/$sitedirectory/"
+		sudo rm "$serverroot/$sitedirectory/latest.zip"
+		sudo rm -r "$serverroot/$sitedirectory/wordpress"
+		add_to_log "UNZIPPED AND MOVED WORDPRESS FILES TO SITE'S ROOT DIRECTORY"
+		
+		case $runscript in
 
-	add_to_log "DID NOT INSTALL WELCOME TEXT INTO $serverroot/$sitename/index.php. FILE ALREADY HAS CONTENT"
+			standard)
+				sudo wget https://github.com/VR51/WordPress-Runscript/archive/master.zip -P "$serverroot/$sitedirectory/wp-content/plugins/"
+				sudo unzip "$serverroot/$sitedirectory/wp-content/plugins/master.zip" -d "$serverroot/$sitedirectory/wp-content/plugins/"
+				sudo rm "$serverroot/$sitedirectory/wp-content/plugins/master.zip"
+				add_to_log "INSTALLED WORDPRESS RUNSCRIPT"
+			;;
+			
+		esac
+	
+	;;
+		
+	none)
 
-fi
+		# Add default content to index.php if file size is 0
+
+		size=$(wc -c <"$serverroot/$sitedirectory/index.php")
+		if test $size -eq 0 ; then
+
+			printf "\n"
+			printf "<?php echo '<p>Welcome to $sitename.</p><p>Test both HTTP and HTTPS versions of this site to confirm proper installation.</p><p>Host created with $title $version.</p><p>Read more about $title at https://github.com/vr51/vhost-maker</p>'; ?>" | sudo tee -a "$serverroot/$sitedirectory/index.php"
+			add_to_log "INSTALLED WELCOME TEXT INTO $serverroot/$sitedirectory/index.php"
+			
+		else
+
+			add_to_log "DID NOT INSTALL WELCOME TEXT INTO $serverroot/$sitedirectory/index.php. FILE ALREADY HAS CONTENT"
+
+		fi
+	;;
+	
+esac
+
 
 # Make site confs. Overwrite existing files in tmp directory if needs be.
 
@@ -739,8 +797,8 @@ cp "$filepath/confs/default.conf" "$filepath/tmp/$sitename.conf"
 cp "$filepath/confs/default-ssl.conf" "$filepath/tmp/$sitename-ssl.conf"
 
 # Data in these two arrays is mapped by list order
-search=( 'IPADDRESS' 'SSLPORT' 'PORT' 'SITENAME' 'EMAILADDRESS' 'SERVERROOT' 'DUMMYDATA')
-replace=( "$ipaddress" "$sslport" "$port" "$sitename" "$emailaddress" "$serverroot" "DUMMYDATA")
+search=( 'IPADDRESS' 'SSLPORT' 'PORT' 'SITENAME' 'SITEDIRECTORY' 'EMAILADDRESS' 'SERVERROOT' 'DUMMYDATA')
+replace=( "$ipaddress" "$sslport" "$port" "$sitename" "$sitedirectory" "$emailaddress" "$serverroot" "DUMMYDATA")
 
 for i in ${search[@]}; do
 
@@ -839,17 +897,17 @@ fi
 	
 #	Set File and Dirctory Permissions
 
-add_to_log "CHECKED DIRECTORY (755) AND FILE (644) PERMISSIONS AT AND IN $serverroot/$sitename"
+add_to_log "CHECKED DIRECTORY (755) AND FILE (644) PERMISSIONS AT AND IN $serverroot/$sitedirectory"
 
-sudo find "$serverroot/$sitename" -type d -exec chmod 755 {} \;
-sudo find "$serverroot/$sitename" -type f -exec chmod 644 {} \;
+sudo find "$serverroot/$sitedirectory" -type d -exec chmod 755 {} \;
+sudo find "$serverroot/$sitedirectory" -type f -exec chmod 644 {} \;
 
 
 #	Check File and Dirctory Ownerships
 
-add_to_log "CHECKED DIRECTORY AND FILE OWNERSHIP ($apacheuser":"$apachegroup) AT AND IN $serverroot/$sitename"
+add_to_log "CHECKED DIRECTORY AND FILE OWNERSHIP ($apacheuser":"$apachegroup) AT AND IN $serverroot/$sitedirectory"
 
-sudo chown -R "$apacheuser":"$apachegroup" "$serverroot/$sitename"
+sudo chown -R "$apacheuser":"$apachegroup" "$serverroot/$sitedirectory"
 
 
 ###
@@ -867,7 +925,7 @@ if test "$sslinstall" = '0'; then
 	\n\n
 	The site $sitename has been created.
 	\n\n
-	The server space for this site is in $serverroot/$sitename.
+	The server space for this site is in $serverroot/$sitedirectory.
 	\n\n
 	The configuration files are at:
 	\n\n
@@ -912,7 +970,7 @@ if test "$sslinstall" = '1'; then
 	\n\n
 	The site $sitename has been created.
 	\n\n
-	The server space for this site is in $serverroot/$sitename.
+	The server space for this site is in $serverroot/$sitedirectory.
 	\n\n
 	The configuration files are at:
 	\n\n

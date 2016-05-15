@@ -1,6 +1,16 @@
+1.1.0
+
+	- Feature: Now offers to download WordPress and a plugin/theme deployment package.
+
+1.0.2
+
+	- Mod: Disabled SSL2 and SSL3 within default-ssl.conf
+	- Mod: Added several directives to default-ssl.conf that enhance SSL such as SSL session length timeout (300).
+
+
 1.0.1
 
-	-	Bug Fix: corrected openssl command. Previous command was set for sha512 which produced SSL errors. Switched to sha256.
+	- Bug Fix: corrected openssl command. Previous command was set for sha512 which produced SSL errors. Switched to sha256.
 	
 1.0.0
 
